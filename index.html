@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Data-Quality Hub — on-device AI for schemas, drift & contracts · John Mikel Regida</title>
-  <meta name="description" content="Three on-device AI tools in one: infer a schema's meaning, measure semantic drift between data snapshots, and flag breaking schema changes — all in your browser, no API key. By John Mikel Regida.">
+  <title>Data-Quality Hub — on-device AI for data, schemas & agents · John Mikel Regida</title>
+  <meta name="description" content="Seven on-device AI tools in one browser tab: infer schema meaning, measure drift, catch breaking changes, build a taxonomy, compress context, scrub PII, and score model outputs — no API key, nothing leaves the device. By John Mikel Regida.">
   <link rel="canonical" href="https://www.johnmikelregida.com/labs/ai">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <script defer src="/_vercel/insights/script.js"></script>
@@ -77,6 +77,13 @@
     .legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:middle}
     .empty{color:var(--faint);font-style:italic;padding:14px 2px}
     .foot{margin-top:48px;padding-top:24px;border-top:1px solid var(--line);font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+    .outbox{background:#0d0f12;border:1px solid var(--line);border-radius:10px;padding:13px;font-family:"IBM Plex Mono",monospace;font-size:12px;line-height:1.7;white-space:pre-wrap;word-break:break-word;max-height:360px;overflow:auto;margin-top:8px}
+    .mark{background:rgba(224,121,91,.22);color:#f1a78f;border-radius:3px;padding:0 4px}
+    .cut{color:var(--faint);text-decoration:line-through}
+    .num{width:92px;background:#0d0f12;border:1px solid var(--line);border-radius:8px;color:var(--text);font-family:"IBM Plex Mono",monospace;font-size:12px;padding:9px}
+    .num:focus{outline:none;border-color:var(--accent)}
+    input[type=range]{accent-color:var(--accent);vertical-align:middle}
+    .clbl{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
   </style>
 </head>
 <body>
@@ -86,14 +93,18 @@
       <span class="badge">On-device · no API key</span>
     </div>
     <div class="eyebrow"><b>AI Lab</b> · Data-Quality Hub</div>
-    <h1>Three ways embeddings <span class="em">guard your data</span>.</h1>
-    <p class="lede">One on-device embedding model, three jobs rules can't do: infer what a schema's fields actually <b>mean</b>, measure semantic <b>drift</b> between two data snapshots, and tell breaking schema changes from safe ones (with <b>rename</b> detection). All in your browser.</p>
+    <h1>On-device AI for <span class="em">data, schemas &amp; agents</span>.</h1>
+    <p class="lede">Seven original tools that run entirely in your browser: infer what a schema's fields <b>mean</b>, measure semantic <b>drift</b>, tell <b>breaking</b> changes from safe, build a <b>taxonomy</b>, <b>compress</b> a prompt to fit a token budget, <b>scrub PII</b>, and <b>score</b> model outputs by meaning. One embedding model, no API key, nothing leaves the device.</p>
     <div class="rule"></div>
 
     <div class="tabs">
       <button data-tab="schema" class="on">Schema Whisperer</button>
       <button data-tab="drift">Drift Lens</button>
       <button data-tab="radar">Breaking-Change Radar</button>
+      <button data-tab="tax">Taxonomy Builder</button>
+      <button data-tab="ctx">Context Compressor</button>
+      <button data-tab="pii">PII Scrubber</button>
+      <button data-tab="eval">Eval Studio</button>
     </div>
     <div class="status" id="status">Embedding model loads on first run (~25&nbsp;MB, cached after).</div>
 
@@ -137,9 +148,67 @@
       </div>
     </div>
 
+    <!-- Taxonomy Builder -->
+    <div class="tool" id="tab-tax">
+      <div class="panel">
+        <h2>Taxonomy Builder — categorize a list, or auto-discover the categories</h2>
+        <div class="twocol">
+          <div><label class="fl">Items — one per line</label><textarea id="t-items" spellcheck="false"></textarea></div>
+          <div><label class="fl">Categories — optional, one per line (leave empty to auto-discover)</label><textarea id="t-cats" spellcheck="false"></textarea></div>
+        </div>
+        <div class="controls"><div class="presets"><button data-p="t-cat">Categorize example</button><button data-p="t-auto">Auto-discover example</button></div><button class="run" id="t-run">Build</button></div>
+        <div class="res" id="t-res"></div>
+      </div>
+    </div>
+
+    <!-- Context Compressor -->
+    <div class="tool" id="tab-ctx">
+      <div class="panel">
+        <h2>Context Compressor — count tokens &amp; cut redundancy to fit a budget</h2>
+        <label class="fl">Paste a long prompt or document</label>
+        <textarea id="c-in" spellcheck="false" style="min-height:190px"></textarea>
+        <div class="controls">
+          <div class="presets"><button data-p="c-demo">Load example</button></div>
+          <span class="clbl">Budget</span><input id="c-budget" class="num" type="number" value="80" min="10" step="10">
+          <button class="run" id="c-run">Compress</button>
+        </div>
+        <div class="res" id="c-res"></div>
+      </div>
+    </div>
+
+    <!-- PII Scrubber -->
+    <div class="tool" id="tab-pii">
+      <div class="panel">
+        <h2>PII Scrubber — detect &amp; redact personal data, on-device</h2>
+        <label class="fl">Paste text — it never leaves your browser</label>
+        <textarea id="p-in" spellcheck="false"></textarea>
+        <div class="controls">
+          <div class="presets"><button data-p="p-demo">Load example</button></div>
+          <button class="run" id="p-ner" style="margin-left:auto;background:transparent;color:var(--accent);border:1px solid rgba(124,156,194,.4)">+ Names (loads NER)</button>
+          <button class="run" id="p-run" style="margin-left:10px">Scrub</button>
+        </div>
+        <div class="res" id="p-res"></div>
+      </div>
+    </div>
+
+    <!-- Eval Studio -->
+    <div class="tool" id="tab-eval">
+      <div class="panel">
+        <h2>Eval Studio — score outputs against references by meaning</h2>
+        <label class="fl">Test cases — JSON array of {"case","reference","output"}</label>
+        <textarea id="e-in" spellcheck="false" style="min-height:200px"></textarea>
+        <div class="controls">
+          <div class="presets"><button data-p="e-demo">Load example</button></div>
+          <span class="clbl">Pass ≥</span><input id="e-thr" type="range" min="40" max="90" value="62"><span id="e-thrv" class="mono" style="font-size:11px;color:var(--muted)">62%</span>
+          <button class="run" id="e-run">Run evals</button>
+        </div>
+        <div class="res" id="e-res"></div>
+      </div>
+    </div>
+
     <div class="foot">
-      <span>Data-Quality Hub · original labs by John Mikel Regida</span>
-      <span>embeddings · transformers.js · on-device</span>
+      <span>Data-Quality Hub · seven original labs by John Mikel Regida</span>
+      <span>embeddings · transformers.js · gpt-tokenizer · on-device</span>
     </div>
   </div>
 
@@ -169,6 +238,23 @@
       var lam=0,Mv=new Float32Array(n);for(a=0;a<n;a++){var s2=0;for(b=0;b<n;b++)s2+=M[a][b]*v[b];Mv[a]=s2;}lam=dot(v,Mv);return{v:v,lam:Math.max(lam,0)};}
     var e1=pit(B,null),e2=pit(B,e1.v),x=[],y=[];for(i=0;i<n;i++){x.push(e1.v[i]*Math.sqrt(e1.lam));y.push(e2.v[i]*Math.sqrt(e2.lam));}return{x:x,y:y};}
   function esc(s){return String(s).replace(/[&<>]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;"}[c];});}
+  // leader clustering: assign each item to the nearest cluster *centroid* (>= thr),
+  // else start a new cluster. Comparing to the centroid (not any one member) avoids
+  // single-linkage chaining, where a bridge word like "orange" merges two groups.
+  function clusterLeader(V,thr){var clusters=[];
+    for(var i=0;i<V.length;i++){var best=-1,bi=-1;
+      for(var c=0;c<clusters.length;c++){var s=dot(V[i],clusters[c].cen);if(s>best){best=s;bi=c;}}
+      if(bi>=0&&best>=thr){clusters[bi].m.push(i);clusters[bi].cen=meanVec(clusters[bi].m.map(function(x){return V[x];}));}
+      else clusters.push({m:[i],cen:V[i]});}
+    return clusters.map(function(c){return c.m;}).sort(function(a,b){return b.length-a.length;});}
+  // most-central member of a group (max total similarity)
+  function medoid(idxs,V){var best=idxs[0],bs=-1;idxs.forEach(function(a){var s=0;idxs.forEach(function(b){if(a!==b)s+=dot(V[a],V[b]);});if(s>bs){bs=s;best=a;}});return best;}
+  // token count via gpt-tokenizer (cl100k), heuristic fallback
+  var _enc=null;
+  async function countTokens(t){
+    if(_enc===null){try{var m=await import("https://cdn.jsdelivr.net/npm/gpt-tokenizer@2/+esm");_enc=(m.encode||m.default&&m.default.encode)||false;}catch(e){_enc=false;}}
+    if(_enc){try{return _enc(t).length;}catch(e){}}
+    return Math.max(1,Math.ceil(t.trim().split(/\s+/).filter(Boolean).length*1.33));}
 
   // ---- tabs ----
   document.querySelectorAll(".tabs button").forEach(function(b){b.onclick=function(){
@@ -314,10 +400,142 @@
     $("r-run").disabled=false;
   };
 
+  // ================= Taxonomy Builder =================
+  var T_ITEMS=["Bus stop","Railway station","Tram platform","Taxi rank","Coach station","Ferry terminal","Cycle hire dock","EV charging point","Car park","Park and ride","Airport terminal","Underground entrance"].join("\n");
+  var T_CATS=["Rail & tram","Road & bus","Water","Active travel & micromobility","Air","Parking"].join("\n");
+  var T_MIX=["mango","pineapple","blueberry","watermelon","peach","guitar","violin","trumpet","drums","piano","France","Japan","Brazil","Canada","Egypt"].join("\n");
+  $("t-items").value=T_ITEMS; $("t-cats").value=T_CATS;
+  $("t-run").onclick=async function(){
+    var items=$("t-items").value.split("\n").map(function(s){return s.trim();}).filter(Boolean);
+    var cats=$("t-cats").value.split("\n").map(function(s){return s.trim();}).filter(Boolean);
+    if(items.length<2){$("t-res").innerHTML='<div class="empty">Add at least 2 items.</div>';return;}
+    $("t-run").disabled=true;
+    var IV=await embed(items);
+    if(cats.length){
+      var CV=await embed(cats),low=0;
+      var rows=items.map(function(it,i){var best=-1,bi=0;CV.forEach(function(c,j){var s=dot(IV[i],c);if(s>best){best=s;bi=j;}});
+        var nc=best<0.30; if(nc)low++;
+        return '<tr><td class="k">'+esc(it)+'</td><td>'+(nc?'<span class="pill" style="color:var(--warn);border-color:rgba(224,168,92,.4)">needs new category</span>':esc(cats[bi]))+'</td><td>'+(best*100).toFixed(0)+'%</td></tr>';}).join("");
+      $("t-res").innerHTML='<div class="cards"><div class="card good"><div class="fig">'+items.length+'</div><div class="lab">Items</div></div>'+
+        '<div class="card"><div class="fig">'+cats.length+'</div><div class="lab">Categories</div></div>'+
+        '<div class="card '+(low?"warn":"")+'"><div class="fig">'+low+'</div><div class="lab">Need a new category</div></div></div>'+
+        '<table><thead><tr><th>item</th><th>assigned category</th><th>confidence</th></tr></thead><tbody>'+rows+'</tbody></table>';
+    } else {
+      var groups=clusterLeader(IV,0.42);
+      var singles=groups.filter(function(g){return g.length===1;}).length;
+      var html=groups.map(function(g){var name=items[medoid(g,IV)];
+        return '<div style="margin-top:14px"><label class="fl">'+esc(name)+' · '+g.length+' item'+(g.length>1?"s":"")+'</label>'+
+          g.map(function(idx){return '<div class="listrow"><span style="color:var(--text)">'+esc(items[idx])+'</span></div>';}).join("")+'</div>';}).join("");
+      $("t-res").innerHTML='<div class="cards"><div class="card good"><div class="fig">'+groups.length+'</div><div class="lab">Clusters found</div></div>'+
+        '<div class="card"><div class="fig">'+items.length+'</div><div class="lab">Items</div></div>'+
+        '<div class="card"><div class="fig">'+singles+'</div><div class="lab">Singletons</div></div></div>'+
+        '<label class="fl" style="margin-top:6px">Auto-discovered groups (named by their most central member)</label>'+html;
+    }
+    $("t-run").disabled=false;
+  };
+
+  // ================= Context Compressor =================
+  var C_DEMO="Our return policy allows returns within 30 days of purchase. Customers may return items within thirty days of the purchase date for a refund. You can send products back within a month to get your money back. Refunds are issued to the original payment method within 5 business days. Once we receive the item, the refund goes back to your original card in about five working days. Items must be unused and in their original packaging. To be eligible, products should be unworn and kept in the packaging they came in. Sale items are final and cannot be returned. Shipping costs are non-refundable. For exchanges, email support@example.com with your order number.";
+  $("c-in").value=C_DEMO;
+  $("c-run").onclick=async function(){
+    var text=$("c-in").value.trim(); if(text.length<20){$("c-res").innerHTML='<div class="empty">Paste a longer passage.</div>';return;}
+    var budget=Math.max(10,parseInt($("c-budget").value,10)||80);
+    $("c-run").disabled=true; setStatus("Counting tokens & embedding chunks…");
+    var origTok=await countTokens(text);
+    var chunks=text.replace(/\n+/g," ").split(/(?<=[.!?])\s+/).map(function(s){return s.trim();}).filter(function(s){return s.length;});
+    if(chunks.length<2){$("c-res").innerHTML='<div class="empty">Not enough sentences to compress.</div>';$("c-run").disabled=false;return;}
+    var CV=await embed(chunks),ctok=[];
+    for(var i=0;i<chunks.length;i++)ctok.push(await countTokens(chunks[i]));
+    var kept=[],cut=[],DUP=0.78;
+    for(i=0;i<chunks.length;i++){var dup=-1;for(var k=0;k<kept.length;k++){if(dot(CV[i],CV[kept[k]])>=DUP){dup=kept[k];break;}}
+      if(dup<0)kept.push(i);else cut.push({i:i,reason:"near-duplicate of: “"+chunks[dup].slice(0,42)+(chunks[dup].length>42?"…":"")+"”"});}
+    function keptTok(){return kept.reduce(function(s,idx){return s+ctok[idx];},0);}
+    while(keptTok()>budget&&kept.length>1){
+      var cen=meanVec(kept.map(function(idx){return CV[idx];}));
+      var worst=0,ws=-1;kept.forEach(function(idx,pos){var c=dot(CV[idx],cen);if(c>ws){ws=c;worst=pos;}});
+      cut.push({i:kept.splice(worst,1)[0],reason:"over budget — lowest marginal information"});}
+    kept.sort(function(a,b){return a-b;});
+    var newTok=keptTok(),saved=Math.max(0,Math.round((1-newTok/origTok)*100));
+    function cost(t){return "$"+(t/1e6*3).toFixed(4);}
+    var keptHtml=kept.map(function(idx){return '<span class="kept">'+esc(chunks[idx])+'</span> ';}).join("");
+    var cutHtml=cut.sort(function(a,b){return a.i-b.i;}).map(function(o){return '<div class="listrow"><span class="cut">'+esc(chunks[o.i].slice(0,56))+(chunks[o.i].length>56?"…":"")+'</span><span style="color:var(--faint);text-transform:none">'+esc(o.reason)+'</span></div>';}).join("");
+    $("c-res").innerHTML='<div class="cards"><div class="card"><div class="fig">'+origTok+'</div><div class="lab">Tokens in</div></div>'+
+      '<div class="card good"><div class="fig">'+newTok+'</div><div class="lab">Tokens out · budget '+budget+'</div></div>'+
+      '<div class="card good"><div class="fig">'+saved+'%</div><div class="lab">Reduction</div></div></div>'+
+      '<div class="clbl" style="margin-bottom:4px;text-transform:none">Kept context · '+cost(origTok)+' → '+cost(newTok)+' per call @ $3/1M input tokens (illustrative)</div><div class="outbox">'+keptHtml+'</div>'+
+      (cut.length?'<label class="fl" style="margin-top:16px">Cut '+cut.length+' chunk'+(cut.length>1?"s":"")+'</label>'+cutHtml:'');
+    setStatus('MiniLM · <span class="ok">ready, on-device</span>'); $("c-run").disabled=false;
+  };
+
+  // ================= PII Scrubber =================
+  var P_DEMO="Hi, I'm Sarah Thompson. Reach me at sarah.thompson@example.co.uk or on 07700 900123. My address is 14 Queen Street, Bristol BS1 4AA. NI number AB123456C. Card 4111 1111 1111 1111. Server logged the request from 192.168.0.42. Profile: https://example.com/u/sarah.";
+  $("p-in").value=P_DEMO;
+  var PII=[["URL",/https?:\/\/[^\s]+/g],["EMAIL",/[\w.+-]+@[\w-]+\.[\w.-]+/g],["CARD",/\b(?:\d[ -]?){13,16}\b/g],
+    ["NINO",/\b[A-CEGHJ-PR-TW-Z]{2}\s?\d{6}\s?[A-D]\b/gi],["POSTCODE",/\b[A-Z]{1,2}\d[A-Z\d]?\s?\d[A-Z]{2}\b/gi],
+    ["IP",/\b\d{1,3}(?:\.\d{1,3}){3}\b/g],["PHONE",/(?:\+?\d[\d ()-]{8,}\d)/g]];
+  var nerExtractor=null;
+  async function nerPipeline(){ if(nerExtractor)return nerExtractor; nerExtractor=await pipeline("token-classification","Xenova/bert-base-NER"); return nerExtractor; }
+  function renderPII(out,counts,extra){
+    var found=Object.keys(counts),total=found.reduce(function(s,k){return s+counts[k];},0);
+    var html=esc(out).replace(/\[(URL|EMAIL|CARD|NINO|POSTCODE|IP|PHONE|NAME)\]/g,function(m){return '<span class="mark">'+m+'</span>';});
+    var tbl=found.length?'<table><thead><tr><th>type</th><th>count</th></tr></thead><tbody>'+found.map(function(k){return '<tr><td class="k">'+k+'</td><td>'+counts[k]+'</td></tr>';}).join("")+'</tbody></table>':'';
+    $("p-res").innerHTML='<div class="cards"><div class="card '+(total?"warn":"good")+'"><div class="fig">'+total+'</div><div class="lab">PII items redacted</div></div>'+
+      '<div class="card"><div class="fig">'+found.length+'</div><div class="lab">Types found</div></div>'+
+      '<div class="card good"><div class="fig">100%</div><div class="lab">On-device</div></div></div>'+
+      '<label class="fl">Redacted text</label><div class="outbox">'+html+'</div>'+(extra||"")+(tbl?'<label class="fl" style="margin-top:14px">Breakdown</label>'+tbl:'');
+  }
+  function scrubRegex(text){var counts={},out=text;PII.forEach(function(d){out=out.replace(d[1],function(m){counts[d[0]]=(counts[d[0]]||0)+1;return "["+d[0]+"]";});});return {out:out,counts:counts};}
+  $("p-run").onclick=function(){var t=$("p-in").value;if(!t.trim()){$("p-res").innerHTML='<div class="empty">Paste some text.</div>';return;}var r=scrubRegex(t);renderPII(r.out,r.counts);};
+  $("p-ner").onclick=function(){
+    var t=$("p-in").value;if(!t.trim()){$("p-res").innerHTML='<div class="empty">Paste some text.</div>';return;}
+    $("p-ner").disabled=true;setStatus("Loading NER model on-device…");
+    nerPipeline().then(function(ner){return ner(t);}).then(function(ents){
+      var names={};(ents||[]).forEach(function(e){var tag=e.entity||e.entity_group||"";if(/PER/.test(tag)){var w=(e.word||"").replace(/^##/,"");if(w&&w.length>1)names[w]=1;}});
+      var r=scrubRegex(t),out=r.out;
+      Object.keys(names).forEach(function(w){var re=new RegExp("\\b"+w.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+"\\b","g");out=out.replace(re,"[NAME]");});
+      var nc=(out.match(/\[NAME\]/g)||[]).length; if(nc)r.counts["NAME"]=nc;
+      setStatus('NER + MiniLM · <span class="ok">ready, on-device</span>');$("p-ner").disabled=false;
+      renderPII(out,r.counts,'<div class="clbl" style="margin-top:8px;text-transform:none">Names via Xenova/bert-base-NER (best-effort, subword-merged).</div>');
+    }).catch(function(e){setStatus('<span class="err">NER failed: '+esc(e.message)+'</span>');$("p-ner").disabled=false;});
+  };
+
+  // ================= Eval Studio =================
+  var E_DEMO=JSON.stringify([
+    {"case":"capital of France","reference":"The capital of France is Paris.","output":"Paris is France's capital city."},
+    {"case":"refund window","reference":"Refunds are available within 30 days.","output":"You can get a refund any time within a month of buying."},
+    {"case":"speed of light","reference":"About 299,792 kilometres per second.","output":"Roughly 300,000 km/s in a vacuum."},
+    {"case":"off-topic answer","reference":"Water boils at 100°C at sea level.","output":"The Great Wall of China is a long fortification."},
+    {"case":"concept mismatch","reference":"Photosynthesis lets plants turn sunlight into energy.","output":"Mitochondria are the powerhouse of the cell."}
+  ],null,2);
+  $("e-in").value=E_DEMO;
+  $("e-thr").oninput=function(){$("e-thrv").textContent=$("e-thr").value+"%";};
+  $("e-run").onclick=async function(){
+    var cases;try{cases=JSON.parse($("e-in").value);}catch(e){$("e-res").innerHTML='<div class="empty">Invalid JSON: '+esc(e.message)+'</div>';return;}
+    if(!Array.isArray(cases)||!cases.length){$("e-res").innerHTML='<div class="empty">Provide a JSON array of cases.</div>';return;}
+    $("e-run").disabled=true;
+    var thr=parseInt($("e-thr").value,10)/100;
+    var RV=await embed(cases.map(function(c){return String(c.reference||"");})),OV=await embed(cases.map(function(c){return String(c.output||"");}));
+    var scored=cases.map(function(c,i){var s=Math.max(0,dot(RV[i],OV[i]));return {c:c,s:s,pass:s>=thr};});
+    var passed=scored.filter(function(x){return x.pass;}).length;
+    var avg=scored.reduce(function(s,x){return s+x.s;},0)/scored.length,rate=Math.round(passed/scored.length*100);
+    var rows=scored.map(function(x){return '<tr><td class="k">'+esc(x.c.case||x.c.name||"—")+'</td><td>'+(x.s*100).toFixed(0)+'%</td><td><span class="sev '+(x.pass?"safe":"breaking")+'">'+(x.pass?"pass":"fail")+'</span></td></tr>';}).join("");
+    $("e-res").innerHTML='<div class="cards"><div class="card '+(rate>=80?"good":rate>=50?"warn":"bad")+'"><div class="fig">'+rate+'%</div><div class="lab">Pass rate</div></div>'+
+      '<div class="card"><div class="fig">'+passed+'/'+scored.length+'</div><div class="lab">Passed</div></div>'+
+      '<div class="card"><div class="fig">'+(avg*100).toFixed(0)+'</div><div class="lab">Avg similarity</div></div></div>'+
+      '<table><thead><tr><th>case</th><th>similarity</th><th>verdict</th></tr></thead><tbody>'+rows+'</tbody></table>'+
+      '<div class="clbl" style="margin-top:12px;text-transform:none">Semantic similarity is a fast proxy for an LLM judge — it rewards meaning overlap, not factual correctness. Pair it with hard assertions for ground truth.</div>';
+    $("e-run").disabled=false;
+  };
+
   // presets
   document.querySelectorAll(".presets button[data-p]").forEach(function(b){b.onclick=function(){
     var p=b.dataset.p;
     if(p==="s-msgy")$("s-in").value=S_MESSY; else if(p==="s-clean")$("s-in").value=S_CLEAN;
+    else if(p==="t-cat"){$("t-items").value=T_ITEMS;$("t-cats").value=T_CATS;}
+    else if(p==="t-auto"){$("t-items").value=T_MIX;$("t-cats").value="";}
+    else if(p==="c-demo")$("c-in").value=C_DEMO;
+    else if(p==="p-demo")$("p-in").value=P_DEMO;
+    else if(p==="e-demo")$("e-in").value=E_DEMO;
     else if(p==="d-demo"){/* already loaded */}
     else if(p==="r-demo"){/* already loaded */}
   };});
