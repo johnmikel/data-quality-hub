@@ -7,12 +7,24 @@
   <meta name="description" content="Seven on-device AI tools in one browser tab: infer schema meaning, measure drift, catch breaking changes, build a taxonomy, compress context, scrub PII, and score model outputs — no API key, nothing leaves the device. By John Mikel Regida.">
   <link rel="canonical" href="https://www.johnmikelregida.com/labs/ai">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <meta name="theme-color" content="#0B0B0D">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="John Mikel Regida">
+  <meta property="og:title" content="Data-Quality Hub — John Mikel Regida">
+  <meta property="og:description" content="Seven on-device tools for data, schemas and agents — schema meaning, drift, breaking-change radar, taxonomy, context compression, PII scrubbing and eval. No API key.">
+  <meta property="og:url" content="https://www.johnmikelregida.com/labs/ai">
+  <meta property="og:image" content="https://www.johnmikelregida.com/og.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Data-Quality Hub — John Mikel Regida">
+  <meta name="twitter:description" content="Seven on-device tools for data, schemas and agents — schema meaning, drift, breaking-change radar, taxonomy, context compression, PII scrubbing and eval. No API key.">
+  <meta name="twitter:image" content="https://www.johnmikelregida.com/og.jpg">
   <script defer src="/_vercel/insights/script.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,340..500;1,9..144,380..480&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
-    :root{--bg:#0B0B0D;--surface:rgba(255,255,255,.025);--surface2:rgba(255,255,255,.05);--text:#ECECEA;--muted:#8A8A8F;--faint:#5E5E63;
+    :root{--bg:#0B0B0D;--surface:rgba(255,255,255,.025);--surface2:rgba(255,255,255,.05);--text:#ECECEA;--muted:#8A8A8F;--faint:#7B7B80;
       --line:rgba(255,255,255,.09);--line-strong:rgba(255,255,255,.2);--accent:#7C9CC2;--accent-soft:rgba(124,156,194,.14);--good:#5FBF6E;--warn:#E0A85C;--bad:#E0795B;--grid:rgba(255,255,255,.022);}
     *{box-sizing:border-box}
     html{color:var(--text);background:var(--bg);font-family:"Inter",ui-sans-serif,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
@@ -31,7 +43,7 @@
     .lede{margin:20px 0 0;max-width:66ch;color:var(--muted);font-size:1.05rem;line-height:1.65}
     .rule{width:84px;height:2px;background:var(--accent);margin:22px 0 0}
     .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:30px 0 6px}
-    .tabs button{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:transparent;border:1px solid var(--line);border-radius:999px;padding:9px 15px;cursor:pointer;transition:all .15s}
+    .tabs button{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:transparent;border:1px solid var(--line);border-radius:999px;padding:9px 15px;cursor:pointer;transition:all .15s;min-height:40px;display:inline-flex;align-items:center}
     .tabs button:hover{border-color:var(--line-strong);color:var(--text)}
     .tabs button.on{color:var(--bg);background:var(--text);border-color:var(--text)}
     .status{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.04em;color:var(--faint);margin:8px 0 0}
@@ -46,9 +58,9 @@
     textarea:focus{outline:none;border-color:var(--accent)}
     .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}
     .presets{display:flex;gap:8px;flex-wrap:wrap}
-    .presets button{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);background:transparent;border:1px solid var(--line);border-radius:999px;padding:7px 11px;cursor:pointer}
+    .presets button{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);background:transparent;border:1px solid var(--line);border-radius:999px;padding:7px 11px;cursor:pointer;min-height:40px;display:inline-flex;align-items:center}
     .presets button:hover{border-color:var(--line-strong);color:var(--text)}
-    .run{margin-left:auto;font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;background:var(--text);color:var(--bg);border:none;border-radius:8px;padding:11px 22px;cursor:pointer;font-weight:600}
+    .run{margin-left:auto;font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;background:var(--text);color:var(--bg);border:none;border-radius:8px;padding:11px 22px;cursor:pointer;font-weight:600;min-height:40px;display:inline-flex;align-items:center}
     .run:disabled{opacity:.5;cursor:default}
     .res{margin-top:18px}
     .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
@@ -80,7 +92,8 @@
     .outbox{background:#0d0f12;border:1px solid var(--line);border-radius:10px;padding:13px;font-family:"IBM Plex Mono",monospace;font-size:12px;line-height:1.7;white-space:pre-wrap;word-break:break-word;max-height:360px;overflow:auto;margin-top:8px}
     .mark{background:rgba(224,121,91,.22);color:#f1a78f;border-radius:3px;padding:0 4px}
     .cut{color:var(--faint);text-decoration:line-through}
-    .num{width:92px;background:#0d0f12;border:1px solid var(--line);border-radius:8px;color:var(--text);font-family:"IBM Plex Mono",monospace;font-size:12px;padding:9px}
+    .kept{color:var(--text)}
+    .num{width:92px;background:#0d0f12;border:1px solid var(--line);border-radius:8px;color:var(--text);font-family:"IBM Plex Mono",monospace;font-size:12px;padding:9px;min-height:40px}
     .num:focus{outline:none;border-color:var(--accent)}
     input[type=range]{accent-color:var(--accent);vertical-align:middle}
     .clbl{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
@@ -97,14 +110,14 @@
     <p class="lede">Seven original tools that run entirely in your browser: infer what a schema's fields <b>mean</b>, measure semantic <b>drift</b>, tell <b>breaking</b> changes from safe, build a <b>taxonomy</b>, <b>compress</b> a prompt to fit a token budget, <b>scrub PII</b>, and <b>score</b> model outputs by meaning. One embedding model, no API key, nothing leaves the device.</p>
     <div class="rule"></div>
 
-    <div class="tabs">
-      <button data-tab="schema" class="on">Schema Whisperer</button>
-      <button data-tab="drift">Drift Lens</button>
-      <button data-tab="radar">Breaking-Change Radar</button>
-      <button data-tab="tax">Taxonomy Builder</button>
-      <button data-tab="ctx">Context Compressor</button>
-      <button data-tab="pii">PII Scrubber</button>
-      <button data-tab="eval">Eval Studio</button>
+    <div class="tabs" role="tablist">
+      <button data-tab="schema" class="on" role="tab" aria-selected="true">Schema Whisperer</button>
+      <button data-tab="drift" role="tab" aria-selected="false">Drift Lens</button>
+      <button data-tab="radar" role="tab" aria-selected="false">Breaking-Change Radar</button>
+      <button data-tab="tax" role="tab" aria-selected="false">Taxonomy Builder</button>
+      <button data-tab="ctx" role="tab" aria-selected="false">Context Compressor</button>
+      <button data-tab="pii" role="tab" aria-selected="false">PII Scrubber</button>
+      <button data-tab="eval" role="tab" aria-selected="false">Eval Studio</button>
     </div>
     <div class="status" id="status">Embedding model loads on first run (~25&nbsp;MB, cached after).</div>
 
@@ -113,7 +126,7 @@
       <div class="panel">
         <h2>Schema Whisperer — infer structure &amp; meaning from examples</h2>
         <label class="fl">Paste a JSON array of records</label>
-        <textarea id="s-in" spellcheck="false"></textarea>
+        <textarea id="s-in" spellcheck="false" aria-label="Paste a JSON array of records"></textarea>
         <div class="controls">
           <div class="presets"><button data-p="s-msgy">Messy preset</button><button data-p="s-clean">Clean preset</button></div>
           <button class="run" id="s-run">Analyse</button>
@@ -127,8 +140,8 @@
       <div class="panel">
         <h2>Drift Lens — semantic drift between two snapshots</h2>
         <div class="twocol">
-          <div><label class="fl">Snapshot A · baseline (one value per line)</label><textarea id="d-a" spellcheck="false"></textarea></div>
-          <div><label class="fl">Snapshot B · current</label><textarea id="d-b" spellcheck="false"></textarea></div>
+          <div><label class="fl">Snapshot A · baseline (one value per line)</label><textarea id="d-a" spellcheck="false" aria-label="Snapshot A · baseline (one value per line)"></textarea></div>
+          <div><label class="fl">Snapshot B · current</label><textarea id="d-b" spellcheck="false" aria-label="Snapshot B · current"></textarea></div>
         </div>
         <div class="controls"><div class="presets"><button data-p="d-demo">Load example</button></div><button class="run" id="d-run">Compare</button></div>
         <div class="res" id="d-res"></div>
@@ -140,8 +153,8 @@
       <div class="panel">
         <h2>Breaking-Change Radar — schema diff with rename detection</h2>
         <div class="twocol">
-          <div><label class="fl">Schema v1 (JSON Schema or a sample record)</label><textarea id="r-a" spellcheck="false"></textarea></div>
-          <div><label class="fl">Schema v2</label><textarea id="r-b" spellcheck="false"></textarea></div>
+          <div><label class="fl">Schema v1 (JSON Schema or a sample record)</label><textarea id="r-a" spellcheck="false" aria-label="Schema v1 (JSON Schema or a sample record)"></textarea></div>
+          <div><label class="fl">Schema v2</label><textarea id="r-b" spellcheck="false" aria-label="Schema v2"></textarea></div>
         </div>
         <div class="controls"><div class="presets"><button data-p="r-demo">Load example</button></div><button class="run" id="r-run">Diff</button></div>
         <div class="res" id="r-res"></div>
@@ -153,8 +166,8 @@
       <div class="panel">
         <h2>Taxonomy Builder — categorize a list, or auto-discover the categories</h2>
         <div class="twocol">
-          <div><label class="fl">Items — one per line</label><textarea id="t-items" spellcheck="false"></textarea></div>
-          <div><label class="fl">Categories — optional, one per line (leave empty to auto-discover)</label><textarea id="t-cats" spellcheck="false"></textarea></div>
+          <div><label class="fl">Items — one per line</label><textarea id="t-items" spellcheck="false" aria-label="Items — one per line"></textarea></div>
+          <div><label class="fl">Categories — optional, one per line (leave empty to auto-discover)</label><textarea id="t-cats" spellcheck="false" aria-label="Categories — optional, one per line (leave empty to auto-discover)"></textarea></div>
         </div>
         <div class="controls"><div class="presets"><button data-p="t-cat">Categorize example</button><button data-p="t-auto">Auto-discover example</button></div><button class="run" id="t-run">Build</button></div>
         <div class="res" id="t-res"></div>
@@ -166,10 +179,10 @@
       <div class="panel">
         <h2>Context Compressor — count tokens &amp; cut redundancy to fit a budget</h2>
         <label class="fl">Paste a long prompt or document</label>
-        <textarea id="c-in" spellcheck="false" style="min-height:190px"></textarea>
+        <textarea id="c-in" spellcheck="false" style="min-height:190px" aria-label="Paste a long prompt or document"></textarea>
         <div class="controls">
           <div class="presets"><button data-p="c-demo">Load example</button></div>
-          <span class="clbl">Budget</span><input id="c-budget" class="num" type="number" value="80" min="10" step="10">
+          <span class="clbl">Budget</span><input id="c-budget" class="num" type="number" value="80" min="10" step="10" aria-label="Token budget">
           <button class="run" id="c-run">Compress</button>
         </div>
         <div class="res" id="c-res"></div>
@@ -181,7 +194,7 @@
       <div class="panel">
         <h2>PII Scrubber — detect &amp; redact personal data, on-device</h2>
         <label class="fl">Paste text — it never leaves your browser</label>
-        <textarea id="p-in" spellcheck="false"></textarea>
+        <textarea id="p-in" spellcheck="false" aria-label="Paste text — it never leaves your browser"></textarea>
         <div class="controls">
           <div class="presets"><button data-p="p-demo">Load example</button></div>
           <button class="run" id="p-ner" style="margin-left:auto;background:transparent;color:var(--accent);border:1px solid rgba(124,156,194,.4)">+ Names (loads NER)</button>
@@ -196,10 +209,10 @@
       <div class="panel">
         <h2>Eval Studio — score outputs against references by meaning</h2>
         <label class="fl">Test cases — JSON array of {"case","reference","output"}</label>
-        <textarea id="e-in" spellcheck="false" style="min-height:200px"></textarea>
+        <textarea id="e-in" spellcheck="false" style="min-height:200px" aria-label="Test cases — JSON array of {&quot;case&quot;,&quot;reference&quot;,&quot;output&quot;}"></textarea>
         <div class="controls">
           <div class="presets"><button data-p="e-demo">Load example</button></div>
-          <span class="clbl">Pass ≥</span><input id="e-thr" type="range" min="40" max="90" value="62"><span id="e-thrv" class="mono" style="font-size:11px;color:var(--muted)">62%</span>
+          <span class="clbl">Pass ≥</span><input id="e-thr" type="range" min="40" max="90" value="62" aria-label="Pass threshold percent"><span id="e-thrv" class="mono" style="font-size:11px;color:var(--muted)">62%</span>
           <button class="run" id="e-run">Run evals</button>
         </div>
         <div class="res" id="e-res"></div>
@@ -258,7 +271,7 @@
 
   // ---- tabs ----
   document.querySelectorAll(".tabs button").forEach(function(b){b.onclick=function(){
-    document.querySelectorAll(".tabs button").forEach(function(x){x.classList.remove("on");});b.classList.add("on");
+    document.querySelectorAll(".tabs button").forEach(function(x){x.classList.remove("on");x.setAttribute("aria-selected","false");});b.classList.add("on");b.setAttribute("aria-selected","true");
     document.querySelectorAll(".tool").forEach(function(t){t.classList.remove("on");});$("tab-"+b.dataset.tab).classList.add("on");};});
 
   // ================= Schema Whisperer =================
@@ -294,6 +307,7 @@
     var arr;try{arr=JSON.parse($("s-in").value);}catch(e){$("s-res").innerHTML='<div class="empty">Invalid JSON: '+esc(e.message)+'</div>';return;}
     if(!Array.isArray(arr))arr=[arr]; if(!arr.length){$("s-res").innerHTML='<div class="empty">No records.</div>';return;}
     $("s-run").disabled=true;
+    try{
     var fields={};arr.forEach(function(o){Object.keys(o||{}).forEach(function(k){(fields[k]=fields[k]||[]).push(o[k]);});});
     var keys=Object.keys(fields);
     if(!anchorVecs) anchorVecs=await embed(ANCHORS.map(function(a){return a[0];}));
@@ -317,7 +331,7 @@
       return '<tr><td class="k">'+esc(k)+'</td><td>'+esc(detectType(vals))+'</td><td>'+Math.round(present/arr.length*100)+'%</td><td>'+dn+(dn<=8?' <span class="pill accent">enum?</span>':'')+'</td><td>'+esc(meaning[k])+'</td><td>'+esc(String(ex).slice(0,28))+'</td></tr>';}).join("");
     var dupHtml=dupPairs.length?'<div style="margin-top:14px"><label class="fl">Possible duplicate / synonym fields</label>'+dupPairs.map(function(p){return '<div class="listrow"><span style="color:var(--text)">'+esc(p[0])+' ↔ '+esc(p[1])+'</span><span style="color:var(--warn)">'+(p[2]*100).toFixed(0)+'% similar</span></div>';}).join("")+'</div>':'';
     $("s-res").innerHTML='<table><thead><tr><th>field</th><th>type</th><th>present</th><th>distinct</th><th>inferred meaning</th><th>example</th></tr></thead><tbody>'+rows+'</tbody></table>'+dupHtml;
-    $("s-run").disabled=false;
+    }catch(err){$("s-res").innerHTML='<div class="empty">Something went wrong: '+esc(err.message)+'</div>';}finally{$("s-run").disabled=false;}
   };
 
   // ================= Drift Lens =================
@@ -328,6 +342,7 @@
     var B=$("d-b").value.split("\n").map(function(s){return s.trim();}).filter(Boolean);
     if(A.length<2||B.length<2){$("d-res").innerHTML='<div class="empty">Add at least 2 values to each snapshot.</div>';return;}
     $("d-run").disabled=true;
+    try{
     var VA=await embed(A),VB=await embed(B);var cA=meanVec(VA),cB=meanVec(VB);
     var drift=Math.max(0,Math.round((1-dot(cA,cB))*100));
     function maxsim(v,W){var m=0;for(var i=0;i<W.length;i++){var c=dot(v,W[i]);if(c>m)m=c;}return m;}
@@ -343,8 +358,8 @@
       '<div class="card '+(faded.length?"warn":"")+'"><div class="fig">'+faded.length+'</div><div class="lab">Faded from A</div></div></div>'+
       '<div class="twocol"><div><label class="fl">Emerging — new in B, unlike anything in A</label>'+(emerging.length?emerging.map(function(v){return '<div class="listrow"><span style="color:var(--text)">'+esc(v)+'</span></div>';}).join(""):'<div class="empty">None.</div>')+'</div>'+
       '<div><label class="fl">Faded — in A, gone from B</label>'+(faded.length?faded.map(function(v){return '<div class="listrow"><span style="color:var(--text)">'+esc(v)+'</span></div>';}).join(""):'<div class="empty">None.</div>')+'</div></div>'+
-      '<label class="fl" style="margin-top:18px">Drift map · A (grey) vs B (blue)</label><svg class="map" viewBox="0 0 800 300">'+dots+'</svg>';
-    $("d-run").disabled=false;
+      '<label class="fl" style="margin-top:18px">Drift map · A (grey) vs B (blue)</label><svg class="map" role="img" aria-label="Semantic drift map: baseline A vs current B" viewBox="0 0 800 300">'+dots+'</svg>';
+    }catch(err){$("d-res").innerHTML='<div class="empty">Something went wrong: '+esc(err.message)+'</div>';}finally{$("d-run").disabled=false;}
   };
 
   // ================= Breaking-Change Radar =================
@@ -361,6 +376,7 @@
   $("r-run").onclick=async function(){
     var a,b;try{a=normalize(JSON.parse($("r-a").value));b=normalize(JSON.parse($("r-b").value));}catch(e){$("r-res").innerHTML='<div class="empty">Invalid JSON: '+esc(e.message)+'</div>';return;}
     $("r-run").disabled=true;
+    try{
     var ak=Object.keys(a.props),bk=Object.keys(b.props);
     var removed=ak.filter(function(k){return bk.indexOf(k)<0;});
     var added=bk.filter(function(k){return ak.indexOf(k)<0;});
@@ -397,7 +413,7 @@
     var nBreak=changes.filter(function(c){return c.sev==="breaking";}).length;
     var verdict=nBreak?('<div class="verdict bad">'+nBreak+' breaking change'+(nBreak>1?"s":"")+' — downstream consumers will break.</div>'):'<div class="verdict good">No breaking changes — safe to ship.</div>';
     $("r-res").innerHTML=verdict+(changes.length?changes.map(function(c){return '<div class="change"><span class="sev '+c.sev+'">'+c.sev+'</span><div><div class="f">'+esc(c.f)+'</div><div class="m">'+esc(c.m)+'</div></div></div>';}).join(""):'<div class="empty">Schemas are identical.</div>');
-    $("r-run").disabled=false;
+    }catch(err){$("r-res").innerHTML='<div class="empty">Something went wrong: '+esc(err.message)+'</div>';}finally{$("r-run").disabled=false;}
   };
 
   // ================= Taxonomy Builder =================
@@ -410,6 +426,7 @@
     var cats=$("t-cats").value.split("\n").map(function(s){return s.trim();}).filter(Boolean);
     if(items.length<2){$("t-res").innerHTML='<div class="empty">Add at least 2 items.</div>';return;}
     $("t-run").disabled=true;
+    try{
     var IV=await embed(items);
     if(cats.length){
       var CV=await embed(cats),low=0;
@@ -431,7 +448,7 @@
         '<div class="card"><div class="fig">'+singles+'</div><div class="lab">Singletons</div></div></div>'+
         '<label class="fl" style="margin-top:6px">Auto-discovered groups (named by their most central member)</label>'+html;
     }
-    $("t-run").disabled=false;
+    }catch(err){$("t-res").innerHTML='<div class="empty">Something went wrong: '+esc(err.message)+'</div>';}finally{$("t-run").disabled=false;}
   };
 
   // ================= Context Compressor =================
@@ -441,8 +458,9 @@
     var text=$("c-in").value.trim(); if(text.length<20){$("c-res").innerHTML='<div class="empty">Paste a longer passage.</div>';return;}
     var budget=Math.max(10,parseInt($("c-budget").value,10)||80);
     $("c-run").disabled=true; setStatus("Counting tokens & embedding chunks…");
+    try{
     var origTok=await countTokens(text);
-    var chunks=text.replace(/\n+/g," ").split(/(?<=[.!?])\s+/).map(function(s){return s.trim();}).filter(function(s){return s.length;});
+    var chunks=text.replace(/\n+/g," ").replace(/([.!?])\s+/g,"$1").split("").map(function(s){return s.trim();}).filter(function(s){return s.length;});
     if(chunks.length<2){$("c-res").innerHTML='<div class="empty">Not enough sentences to compress.</div>';$("c-run").disabled=false;return;}
     var CV=await embed(chunks),ctok=[];
     for(var i=0;i<chunks.length;i++)ctok.push(await countTokens(chunks[i]));
@@ -464,7 +482,8 @@
       '<div class="card good"><div class="fig">'+saved+'%</div><div class="lab">Reduction</div></div></div>'+
       '<div class="clbl" style="margin-bottom:4px;text-transform:none">Kept context · '+cost(origTok)+' → '+cost(newTok)+' per call @ $3/1M input tokens (illustrative)</div><div class="outbox">'+keptHtml+'</div>'+
       (cut.length?'<label class="fl" style="margin-top:16px">Cut '+cut.length+' chunk'+(cut.length>1?"s":"")+'</label>'+cutHtml:'');
-    setStatus('MiniLM · <span class="ok">ready, on-device</span>'); $("c-run").disabled=false;
+    setStatus('MiniLM · <span class="ok">ready, on-device</span>');
+    }catch(err){$("c-res").innerHTML='<div class="empty">Something went wrong: '+esc(err.message)+'</div>';}finally{$("c-run").disabled=false;}
   };
 
   // ================= PII Scrubber =================
@@ -513,6 +532,7 @@
     var cases;try{cases=JSON.parse($("e-in").value);}catch(e){$("e-res").innerHTML='<div class="empty">Invalid JSON: '+esc(e.message)+'</div>';return;}
     if(!Array.isArray(cases)||!cases.length){$("e-res").innerHTML='<div class="empty">Provide a JSON array of cases.</div>';return;}
     $("e-run").disabled=true;
+    try{
     var thr=parseInt($("e-thr").value,10)/100;
     var RV=await embed(cases.map(function(c){return String(c.reference||"");})),OV=await embed(cases.map(function(c){return String(c.output||"");}));
     var scored=cases.map(function(c,i){var s=Math.max(0,dot(RV[i],OV[i]));return {c:c,s:s,pass:s>=thr};});
@@ -524,7 +544,7 @@
       '<div class="card"><div class="fig">'+(avg*100).toFixed(0)+'</div><div class="lab">Avg similarity</div></div></div>'+
       '<table><thead><tr><th>case</th><th>similarity</th><th>verdict</th></tr></thead><tbody>'+rows+'</tbody></table>'+
       '<div class="clbl" style="margin-top:12px;text-transform:none">Semantic similarity is a fast proxy for an LLM judge — it rewards meaning overlap, not factual correctness. Pair it with hard assertions for ground truth.</div>';
-    $("e-run").disabled=false;
+    }catch(err){$("e-res").innerHTML='<div class="empty">Something went wrong: '+esc(err.message)+'</div>';}finally{$("e-run").disabled=false;}
   };
 
   // presets
