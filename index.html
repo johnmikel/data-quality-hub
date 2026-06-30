@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Data-Quality Hub — on-device AI for schemas, drift & contracts · John Mikel Regida</title>
+  <meta name="description" content="Three on-device AI tools in one: infer a schema's meaning, measure semantic drift between data snapshots, and flag breaking schema changes — all in your browser, no API key. By John Mikel Regida.">
+  <link rel="canonical" href="https://www.johnmikelregida.com/labs/ai">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <script defer src="/_vercel/insights/script.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,340..500;1,9..144,380..480&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#0B0B0D;--surface:rgba(255,255,255,.025);--surface2:rgba(255,255,255,.05);--text:#ECECEA;--muted:#8A8A8F;--faint:#5E5E63;
+      --line:rgba(255,255,255,.09);--line-strong:rgba(255,255,255,.2);--accent:#7C9CC2;--accent-soft:rgba(124,156,194,.14);--good:#5FBF6E;--warn:#E0A85C;--bad:#E0795B;--grid:rgba(255,255,255,.022);}
+    *{box-sizing:border-box}
+    html{color:var(--text);background:var(--bg);font-family:"Inter",ui-sans-serif,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+    body{margin:0;min-height:100vh;line-height:1.6;background:radial-gradient(900px circle at 80% -5%,rgba(124,156,194,.08),transparent 45%),var(--bg)}
+    body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:64px 64px;-webkit-mask-image:radial-gradient(circle at 50% 22%,#000,transparent 80%)}
+    .wrap{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:40px clamp(20px,5vw,56px) 90px}
+    a{color:inherit}.mono{font-family:"IBM Plex Mono",monospace}
+    .top{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:46px}
+    .back{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+    .back:hover{color:var(--text)}
+    .badge{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);border:1px solid rgba(124,156,194,.42);border-radius:999px;padding:5px 11px}
+    .eyebrow{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:18px}
+    .eyebrow b{color:var(--accent);font-weight:500}
+    h1{font-family:"Fraunces",Georgia,serif;font-weight:400;font-size:clamp(2.3rem,4.6vw,3.6rem);line-height:1.02;letter-spacing:-.02em;margin:0;max-width:20ch}
+    h1 .em{font-style:italic;color:var(--accent)}
+    .lede{margin:20px 0 0;max-width:66ch;color:var(--muted);font-size:1.05rem;line-height:1.65}
+    .rule{width:84px;height:2px;background:var(--accent);margin:22px 0 0}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:30px 0 6px}
+    .tabs button{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:transparent;border:1px solid var(--line);border-radius:999px;padding:9px 15px;cursor:pointer;transition:all .15s}
+    .tabs button:hover{border-color:var(--line-strong);color:var(--text)}
+    .tabs button.on{color:var(--bg);background:var(--text);border-color:var(--text)}
+    .status{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.04em;color:var(--faint);margin:8px 0 0}
+    .status .ok{color:var(--good)} .status .err{color:var(--bad)}
+    .tool{display:none;margin-top:18px} .tool.on{display:block}
+    .panel{border:1px solid var(--line);border-radius:16px;background:var(--surface);padding:22px}
+    .panel h2{margin:0 0 12px;font-family:"Fraunces",Georgia,serif;font-weight:460;font-size:1.2rem;letter-spacing:-.01em}
+    .twocol{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    @media(max-width:760px){.twocol{grid-template-columns:1fr}}
+    label.fl{display:block;font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin:0 0 7px}
+    textarea{width:100%;min-height:150px;background:#0d0f12;border:1px solid var(--line);border-radius:10px;color:var(--text);font-family:"IBM Plex Mono",monospace;font-size:12px;line-height:1.6;padding:13px;resize:vertical}
+    textarea:focus{outline:none;border-color:var(--accent)}
+    .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}
+    .presets{display:flex;gap:8px;flex-wrap:wrap}
+    .presets button{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);background:transparent;border:1px solid var(--line);border-radius:999px;padding:7px 11px;cursor:pointer}
+    .presets button:hover{border-color:var(--line-strong);color:var(--text)}
+    .run{margin-left:auto;font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;background:var(--text);color:var(--bg);border:none;border-radius:8px;padding:11px 22px;cursor:pointer;font-weight:600}
+    .run:disabled{opacity:.5;cursor:default}
+    .res{margin-top:18px}
+    .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+    @media(max-width:620px){.cards{grid-template-columns:1fr}}
+    .card{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:16px}
+    .card .fig{font-family:"Fraunces",Georgia,serif;font-size:1.8rem;line-height:1;font-variant-numeric:tabular-nums}
+    .card.bad .fig{color:var(--bad)} .card.warn .fig{color:var(--warn)} .card.good .fig{color:var(--good)}
+    .card .lab{margin-top:10px;font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+    table{width:100%;border-collapse:collapse;font-size:.88rem}
+    th{text-align:left;font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);font-weight:500;padding:0 9px 9px;border-bottom:1px solid var(--line)}
+    td{padding:10px 9px;border-bottom:1px solid var(--line);color:var(--muted);vertical-align:top}
+    td.k{font-family:"IBM Plex Mono",monospace;color:var(--text)}
+    .pill{display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:9px;letter-spacing:.05em;text-transform:uppercase;border:1px solid;border-radius:999px;padding:2px 7px}
+    .pill.accent{color:var(--accent);border-color:rgba(124,156,194,.4)}
+    .change{display:grid;grid-template-columns:auto 1fr;gap:11px;padding:11px 2px;border-top:1px solid var(--line);font-size:.92rem}
+    .change:first-child{border-top:0}
+    .sev{font-family:"IBM Plex Mono",monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;border:1px solid;border-radius:999px;padding:3px 7px;height:fit-content;white-space:nowrap}
+    .sev.breaking{color:var(--bad);border-color:rgba(224,121,91,.45)} .sev.safe{color:var(--good);border-color:rgba(95,191,110,.4)} .sev.rename{color:var(--accent);border-color:rgba(124,156,194,.4)}
+    .change .f{font-family:"IBM Plex Mono",monospace;color:var(--text);font-size:.82rem} .change .m{color:var(--muted)}
+    .verdict{font-family:"Fraunces",Georgia,serif;font-size:1.4rem;letter-spacing:-.01em;margin:2px 0 14px}
+    .verdict.bad{color:var(--bad)} .verdict.good{color:var(--good)}
+    .listrow{display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding:9px 2px;font-family:"IBM Plex Mono",monospace;font-size:12px}
+    .listrow:first-child{border-top:0}
+    svg.map{width:100%;height:auto;display:block;border-radius:10px;background:linear-gradient(160deg,rgba(255,255,255,.03),transparent);margin-top:8px}
+    .legend{display:flex;gap:16px;margin-top:10px;font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--muted)}
+    .legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:middle}
+    .empty{color:var(--faint);font-style:italic;padding:14px 2px}
+    .foot{margin-top:48px;padding-top:24px;border-top:1px solid var(--line);font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <a class="back" href="/labs">← Labs</a>
+      <span class="badge">On-device · no API key</span>
+    </div>
+    <div class="eyebrow"><b>AI Lab</b> · Data-Quality Hub</div>
+    <h1>Three ways embeddings <span class="em">guard your data</span>.</h1>
+    <p class="lede">One on-device embedding model, three jobs rules can't do: infer what a schema's fields actually <b>mean</b>, measure semantic <b>drift</b> between two data snapshots, and tell breaking schema changes from safe ones (with <b>rename</b> detection). All in your browser.</p>
+    <div class="rule"></div>
+
+    <div class="tabs">
+      <button data-tab="schema" class="on">Schema Whisperer</button>
+      <button data-tab="drift">Drift Lens</button>
+      <button data-tab="radar">Breaking-Change Radar</button>
+    </div>
+    <div class="status" id="status">Embedding model loads on first run (~25&nbsp;MB, cached after).</div>
+
+    <!-- Schema Whisperer -->
+    <div class="tool on" id="tab-schema">
+      <div class="panel">
+        <h2>Schema Whisperer — infer structure &amp; meaning from examples</h2>
+        <label class="fl">Paste a JSON array of records</label>
+        <textarea id="s-in" spellcheck="false"></textarea>
+        <div class="controls">
+          <div class="presets"><button data-p="s-msgy">Messy preset</button><button data-p="s-clean">Clean preset</button></div>
+          <button class="run" id="s-run">Analyse</button>
+        </div>
+        <div class="res" id="s-res"></div>
+      </div>
+    </div>
+
+    <!-- Drift Lens -->
+    <div class="tool" id="tab-drift">
+      <div class="panel">
+        <h2>Drift Lens — semantic drift between two snapshots</h2>
+        <div class="twocol">
+          <div><label class="fl">Snapshot A · baseline (one value per line)</label><textarea id="d-a" spellcheck="false"></textarea></div>
+          <div><label class="fl">Snapshot B · current</label><textarea id="d-b" spellcheck="false"></textarea></div>
+        </div>
+        <div class="controls"><div class="presets"><button data-p="d-demo">Load example</button></div><button class="run" id="d-run">Compare</button></div>
+        <div class="res" id="d-res"></div>
+      </div>
+    </div>
+
+    <!-- Breaking-Change Radar -->
+    <div class="tool" id="tab-radar">
+      <div class="panel">
+        <h2>Breaking-Change Radar — schema diff with rename detection</h2>
+        <div class="twocol">
+          <div><label class="fl">Schema v1 (JSON Schema or a sample record)</label><textarea id="r-a" spellcheck="false"></textarea></div>
+          <div><label class="fl">Schema v2</label><textarea id="r-b" spellcheck="false"></textarea></div>
+        </div>
+        <div class="controls"><div class="presets"><button data-p="r-demo">Load example</button></div><button class="run" id="r-run">Diff</button></div>
+        <div class="res" id="r-res"></div>
+      </div>
+    </div>
+
+    <div class="foot">
+      <span>Data-Quality Hub · original labs by John Mikel Regida</span>
+      <span>embeddings · transformers.js · on-device</span>
+    </div>
+  </div>
+
+  <script type="module">
+  import { pipeline, env } from "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2";
+  env.allowLocalModels=false; env.useBrowserCache=true;
+  var $=function(id){return document.getElementById(id);};
+  var statusEl=$("status");
+  function setStatus(h){statusEl.innerHTML=h;}
+  var extractor=null;
+  async function model(){ if(extractor) return extractor;
+    setStatus("Loading embedding model on-device…");
+    extractor=await pipeline("feature-extraction","Xenova/all-MiniLM-L6-v2");
+    setStatus('MiniLM · <span class="ok">ready, on-device</span>'); return extractor; }
+  async function embed(texts){ var e=await model(),out=[],B=48;
+    for(var i=0;i<texts.length;i+=B){ var r=await e(texts.slice(i,i+B),{pooling:"mean",normalize:true}); r.tolist().forEach(function(v){out.push(v);}); }
+    return out; }
+  function dot(a,b){var s=0;for(var i=0;i<a.length;i++)s+=a[i]*b[i];return s;}
+  function meanVec(V){var n=V.length,d=V[0].length,m=new Array(d).fill(0);for(var i=0;i<n;i++)for(var j=0;j<d;j++)m[j]+=V[i][j];var nr=0;for(j=0;j<d;j++){m[j]/=n;nr+=m[j]*m[j];}nr=Math.sqrt(nr)||1;for(j=0;j<d;j++)m[j]/=nr;return m;}
+  function simMat(V){var n=V.length,S=[];for(var i=0;i<n;i++){S[i]=new Float32Array(n);for(var j=0;j<n;j++)S[i][j]=i===j?1:(j<i?S[j][i]:dot(V[i],V[j]));}return S;}
+  function mds(S){var n=S.length,B=[],rm=new Float32Array(n),tot=0;for(var i=0;i<n;i++)B[i]=new Float32Array(n);
+    for(i=0;i<n;i++){var s=0;for(var j=0;j<n;j++)s+=S[i][j];rm[i]=s/n;tot+=s;}var gm=tot/(n*n);
+    for(i=0;i<n;i++)for(j=0;j<n;j++)B[i][j]=S[i][j]-rm[i]-rm[j]+gm;
+    function pit(M,ex){var v=new Float32Array(n);for(var k=0;k<n;k++)v[k]=Math.sin(k*12.9898+k*k*.013)+.001;
+      for(var it=0;it<70;it++){var w=new Float32Array(n);for(var a=0;a<n;a++){var sm=0;for(var b=0;b<n;b++)sm+=M[a][b]*v[b];w[a]=sm;}
+        if(ex){var dd=dot(w,ex);for(a=0;a<n;a++)w[a]-=dd*ex[a];}var nr=Math.sqrt(dot(w,w))||1;for(a=0;a<n;a++)v[a]=w[a]/nr;}
+      var lam=0,Mv=new Float32Array(n);for(a=0;a<n;a++){var s2=0;for(b=0;b<n;b++)s2+=M[a][b]*v[b];Mv[a]=s2;}lam=dot(v,Mv);return{v:v,lam:Math.max(lam,0)};}
+    var e1=pit(B,null),e2=pit(B,e1.v),x=[],y=[];for(i=0;i<n;i++){x.push(e1.v[i]*Math.sqrt(e1.lam));y.push(e2.v[i]*Math.sqrt(e2.lam));}return{x:x,y:y};}
+  function esc(s){return String(s).replace(/[&<>]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;"}[c];});}
+
+  // ---- tabs ----
+  document.querySelectorAll(".tabs button").forEach(function(b){b.onclick=function(){
+    document.querySelectorAll(".tabs button").forEach(function(x){x.classList.remove("on");});b.classList.add("on");
+    document.querySelectorAll(".tool").forEach(function(t){t.classList.remove("on");});$("tab-"+b.dataset.tab).classList.add("on");};});
+
+  // ================= Schema Whisperer =================
+  var ANCHORS=[["person name","Person name"],["city, town or place","Place / locality"],["street or road address","Street / address"],
+    ["uk postcode","Postcode"],["calendar date or timestamp","Date / time"],["email address","Email"],["telephone number","Phone"],
+    ["money or price amount","Money"],["status or category label","Category / status"],["identifier or reference code","Identifier / code"],
+    ["geographic latitude or longitude","Coordinate"],["free-text description or notes","Free text"],["country","Country"],
+    ["web url or link","URL"],["true or false flag","Boolean flag"],["count or quantity number","Count / quantity"]];
+  var anchorVecs=null;
+  var S_MESSY=JSON.stringify([
+    {"id":"A001","full_name":"Jane Doe","addr":"12 High St","city":"Bristol","postcode":"BS1 6QF","status":"active","price":"12.50","email":"jane@x.com","created":"2024-03-11"},
+    {"id":"A002","full_name":"John Roe","address":"9 Mill Lane","city":"Leeds","postcode":"LS1 4DT","status":"inactive","price":"9.00","email":"john@x.com","created":"2023-08-02"},
+    {"id":"A003","full_name":"Sam Lee","addr":"3 Park Rd","city":"Cardiff","postcode":"CF10 1AA","status":"active","price":"15","email":"sam@x.com","created":"2025-01-19"}
+  ],null,2);
+  var S_CLEAN=JSON.stringify([
+    {"atco":"4900X001","name":"Temple Meads","locality":"Bristol","lat":51.4501,"lon":-2.5856,"active":true},
+    {"atco":"1800SB001","name":"Piccadilly","locality":"Manchester","lat":53.4808,"lon":-2.2374,"active":false}
+  ],null,2);
+  $("s-in").value=S_MESSY;
+  function detectType(vals){
+    var t={};vals.forEach(function(v){
+      if(v===null||v===""){t.null=1;return;}
+      if(typeof v==="boolean"){t.boolean=1;return;}
+      if(typeof v==="number"){t[Number.isInteger(v)?"integer":"number"]=1;return;}
+      var s=String(v);
+      if(/^-?\d+$/.test(s))t.integer=1;else if(/^-?\d*\.\d+$/.test(s))t.number=1;
+      else if(/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s))t.email=1;
+      else if(/^https?:\/\//.test(s))t.url=1;
+      else if(/^\d{4}-\d{2}-\d{2}/.test(s))t.date=1;
+      else t.string=1;});
+    return Object.keys(t).join(" | ")||"—";}
+  $("s-run").onclick=async function(){
+    var arr;try{arr=JSON.parse($("s-in").value);}catch(e){$("s-res").innerHTML='<div class="empty">Invalid JSON: '+esc(e.message)+'</div>';return;}
+    if(!Array.isArray(arr))arr=[arr]; if(!arr.length){$("s-res").innerHTML='<div class="empty">No records.</div>';return;}
+    $("s-run").disabled=true;
+    var fields={};arr.forEach(function(o){Object.keys(o||{}).forEach(function(k){(fields[k]=fields[k]||[]).push(o[k]);});});
+    var keys=Object.keys(fields);
+    if(!anchorVecs) anchorVecs=await embed(ANCHORS.map(function(a){return a[0];}));
+    // semantic meaning per field (from string sample values)
+    var meaning={};
+    for(var ki=0;ki<keys.length;ki++){var k=keys[ki];
+      var vals=fields[k].filter(function(v){return typeof v==="string"&&v.length;}).slice(0,10);
+      if(vals.length>=2){var vv=await embed(vals);var mv=meanVec(vv);
+        var best=-1,bi=0;anchorVecs.forEach(function(a,i){var c=dot(mv,a);if(c>best){best=c;bi=i;}});
+        meaning[k]=best>0.44?ANCHORS[bi][1]+" ("+(best*100).toFixed(0)+"%)":"—";}
+      else meaning[k]="—";}
+    // duplicate / synonym field names
+    var nameVecs=await embed(keys), dupPairs=[];
+    for(var i=0;i<keys.length;i++)for(var j=i+1;j<keys.length;j++){var c=dot(nameVecs[i],nameVecs[j]);
+      var na=keys[i].toLowerCase(),nb=keys[j].toLowerCase();
+      var lex=na.length>=3&&nb.length>=3&&(nb.indexOf(na)===0||na.indexOf(nb)===0);
+      if(c>=0.55||lex)dupPairs.push([keys[i],keys[j],Math.max(c,lex?0.75:0)]);}
+    var rows=keys.map(function(k){var vals=fields[k];var present=vals.filter(function(v){return v!==null&&v!=="";}).length;
+      var distinct={};vals.forEach(function(v){distinct[JSON.stringify(v)]=1;});var dn=Object.keys(distinct).length;
+      var ex=vals.find(function(v){return v!==null&&v!=="";});
+      return '<tr><td class="k">'+esc(k)+'</td><td>'+esc(detectType(vals))+'</td><td>'+Math.round(present/arr.length*100)+'%</td><td>'+dn+(dn<=8?' <span class="pill accent">enum?</span>':'')+'</td><td>'+esc(meaning[k])+'</td><td>'+esc(String(ex).slice(0,28))+'</td></tr>';}).join("");
+    var dupHtml=dupPairs.length?'<div style="margin-top:14px"><label class="fl">Possible duplicate / synonym fields</label>'+dupPairs.map(function(p){return '<div class="listrow"><span style="color:var(--text)">'+esc(p[0])+' ↔ '+esc(p[1])+'</span><span style="color:var(--warn)">'+(p[2]*100).toFixed(0)+'% similar</span></div>';}).join("")+'</div>':'';
+    $("s-res").innerHTML='<table><thead><tr><th>field</th><th>type</th><th>present</th><th>distinct</th><th>inferred meaning</th><th>example</th></tr></thead><tbody>'+rows+'</tbody></table>'+dupHtml;
+    $("s-run").disabled=false;
+  };
+
+  // ================= Drift Lens =================
+  $("d-a").value=["Bus stop","Rail station","Taxi rank","Tram platform","Ferry terminal","Coach bay","Metro entrance","Park and ride"].join("\n");
+  $("d-b").value=["Bus stop","Rail station","EV charging point","E-scooter bay","Bike hangar","Mobility hub","Tram platform","Demand-responsive pickup"].join("\n");
+  $("d-run").onclick=async function(){
+    var A=$("d-a").value.split("\n").map(function(s){return s.trim();}).filter(Boolean);
+    var B=$("d-b").value.split("\n").map(function(s){return s.trim();}).filter(Boolean);
+    if(A.length<2||B.length<2){$("d-res").innerHTML='<div class="empty">Add at least 2 values to each snapshot.</div>';return;}
+    $("d-run").disabled=true;
+    var VA=await embed(A),VB=await embed(B);var cA=meanVec(VA),cB=meanVec(VB);
+    var drift=Math.max(0,Math.round((1-dot(cA,cB))*100));
+    function maxsim(v,W){var m=0;for(var i=0;i<W.length;i++){var c=dot(v,W[i]);if(c>m)m=c;}return m;}
+    var emerging=B.filter(function(_,i){return maxsim(VB[i],VA)<0.55;});
+    var faded=A.filter(function(_,i){return maxsim(VA[i],VB)<0.55;});
+    // map
+    var all=VA.concat(VB),labels=A.concat(B),grp=A.map(function(){return 0;}).concat(B.map(function(){return 1;}));
+    var m=mds(simMat(all));var xs=m.x,ys=m.y,mnx=Math.min.apply(0,xs),mxx=Math.max.apply(0,xs),mny=Math.min.apply(0,ys),mxy=Math.max.apply(0,ys);
+    function X(v){return 30+(v-mnx)/((mxx-mnx)||1)*740;}function Y(v){return 24+(v-mny)/((mxy-mny)||1)*250;}
+    var dots=all.map(function(_,i){return '<circle cx="'+X(xs[i]).toFixed(1)+'" cy="'+Y(ys[i]).toFixed(1)+'" r="4" fill="'+(grp[i]?"var(--accent)":"var(--faint)")+'" opacity="'+(grp[i]?.95:.7)+'"><title>'+esc(labels[i])+'</title></circle>';}).join("");
+    $("d-res").innerHTML='<div class="cards"><div class="card '+(drift>30?"bad":drift>12?"warn":"good")+'"><div class="fig">'+drift+'%</div><div class="lab">Semantic drift</div></div>'+
+      '<div class="card '+(emerging.length?"warn":"")+'"><div class="fig">'+emerging.length+'</div><div class="lab">Emerging in B</div></div>'+
+      '<div class="card '+(faded.length?"warn":"")+'"><div class="fig">'+faded.length+'</div><div class="lab">Faded from A</div></div></div>'+
+      '<div class="twocol"><div><label class="fl">Emerging — new in B, unlike anything in A</label>'+(emerging.length?emerging.map(function(v){return '<div class="listrow"><span style="color:var(--text)">'+esc(v)+'</span></div>';}).join(""):'<div class="empty">None.</div>')+'</div>'+
+      '<div><label class="fl">Faded — in A, gone from B</label>'+(faded.length?faded.map(function(v){return '<div class="listrow"><span style="color:var(--text)">'+esc(v)+'</span></div>';}).join(""):'<div class="empty">None.</div>')+'</div></div>'+
+      '<label class="fl" style="margin-top:18px">Drift map · A (grey) vs B (blue)</label><svg class="map" viewBox="0 0 800 300">'+dots+'</svg>';
+    $("d-run").disabled=false;
+  };
+
+  // ================= Breaking-Change Radar =================
+  $("r-a").value=JSON.stringify({type:"object",required:["id","email"],properties:{
+    id:{type:"string"},email:{type:"string"},status:{type:"string",enum:["active","inactive","pending"]},age:{type:"integer"},notes:{type:"string"}}},null,2);
+  $("r-b").value=JSON.stringify({type:"object",required:["id","email_address","tier"],properties:{
+    id:{type:"string"},email_address:{type:"string"},status:{type:"string",enum:["active","inactive"]},age:{type:"string"},tier:{type:"string"}}},null,2);
+  function normalize(obj){
+    if(obj&&obj.properties)return {props:obj.properties,required:obj.required||[]};
+    var sample=Array.isArray(obj)?obj[0]:obj,props={};
+    Object.keys(sample||{}).forEach(function(k){var v=sample[k];var t=typeof v==="boolean"?"boolean":typeof v==="number"?(Number.isInteger(v)?"integer":"number"):"string";props[k]={type:t};});
+    return {props:props,required:Object.keys(props)};}
+  var WIDEN={integer:["number","string"],number:["string"]}; // v1type -> safe-to-widen-to
+  $("r-run").onclick=async function(){
+    var a,b;try{a=normalize(JSON.parse($("r-a").value));b=normalize(JSON.parse($("r-b").value));}catch(e){$("r-res").innerHTML='<div class="empty">Invalid JSON: '+esc(e.message)+'</div>';return;}
+    $("r-run").disabled=true;
+    var ak=Object.keys(a.props),bk=Object.keys(b.props);
+    var removed=ak.filter(function(k){return bk.indexOf(k)<0;});
+    var added=bk.filter(function(k){return ak.indexOf(k)<0;});
+    var changes=[];
+    // rename detection via embeddings (only if both sides have orphans)
+    var renames={};
+    if(removed.length&&added.length){
+      try{var rv=await embed(removed),av=await embed(added);
+        removed.forEach(function(rn,i){var best=-1,bi=-1;added.forEach(function(an,j){var c=dot(rv[i],av[j]);if(c>best){best=c;bi=j;}});
+          if(best>=0.6){renames[rn]=added[bi];renames["__used_"+added[bi]]=1;
+            changes.push({sev:"rename",f:rn+" → "+added[bi],m:"Likely renamed ("+(best*100).toFixed(0)+"% similar) — still a breaking change for consumers, but flag it as a rename + alias, don't drop silently."});}});
+      }catch(e){}
+    }
+    removed.forEach(function(k){if(renames[k])return;changes.push({sev:"breaking",f:k,m:'Field removed — consumers reading "'+k+'" will break.'});});
+    added.forEach(function(k){if(renames["__used_"+k])return;var req=b.required.indexOf(k)>-1;
+      changes.push({sev:req?"breaking":"safe",f:k,m:req?'New required field — old producers won\'t supply it.':'New optional field — additive, safe.'});});
+    // shared fields: type / enum / requiredness
+    ak.filter(function(k){return bk.indexOf(k)>-1;}).forEach(function(k){
+      var s1=a.props[k]||{},s2=b.props[k]||{};
+      if(s1.type&&s2.type&&s1.type!==s2.type){
+        var safe=(WIDEN[s1.type]||[]).indexOf(s2.type)>-1;
+        changes.push({sev:safe?"safe":"breaking",f:k,m:'Type '+s1.type+' → '+s2.type+(safe?' — widening, safe.':' — narrowing, breaking.')});}
+      if(Array.isArray(s1.enum)&&Array.isArray(s2.enum)){
+        var dropped=s1.enum.filter(function(v){return s2.enum.indexOf(v)<0;});
+        var addedv=s2.enum.filter(function(v){return s1.enum.indexOf(v)<0;});
+        if(dropped.length)changes.push({sev:"breaking",f:k,m:'Enum value(s) removed: '+dropped.join(", ")+' — existing data may be invalid.'});
+        if(addedv.length)changes.push({sev:"safe",f:k,m:'Enum value(s) added: '+addedv.join(", ")+' — safe.'});}
+      else if(!s1.enum&&Array.isArray(s2.enum))changes.push({sev:"breaking",f:k,m:'Now constrained to an enum — previously-valid values may be rejected.'});
+      var r1=a.required.indexOf(k)>-1,r2=b.required.indexOf(k)>-1;
+      if(!r1&&r2)changes.push({sev:"breaking",f:k,m:'Became required — old producers may omit it.'});
+      if(r1&&!r2)changes.push({sev:"safe",f:k,m:'No longer required — relaxed, safe.'});
+    });
+    var order={breaking:0,rename:1,safe:2};changes.sort(function(x,y){return order[x.sev]-order[y.sev];});
+    var nBreak=changes.filter(function(c){return c.sev==="breaking";}).length;
+    var verdict=nBreak?('<div class="verdict bad">'+nBreak+' breaking change'+(nBreak>1?"s":"")+' — downstream consumers will break.</div>'):'<div class="verdict good">No breaking changes — safe to ship.</div>';
+    $("r-res").innerHTML=verdict+(changes.length?changes.map(function(c){return '<div class="change"><span class="sev '+c.sev+'">'+c.sev+'</span><div><div class="f">'+esc(c.f)+'</div><div class="m">'+esc(c.m)+'</div></div></div>';}).join(""):'<div class="empty">Schemas are identical.</div>');
+    $("r-run").disabled=false;
+  };
+
+  // presets
+  document.querySelectorAll(".presets button[data-p]").forEach(function(b){b.onclick=function(){
+    var p=b.dataset.p;
+    if(p==="s-msgy")$("s-in").value=S_MESSY; else if(p==="s-clean")$("s-in").value=S_CLEAN;
+    else if(p==="d-demo"){/* already loaded */}
+    else if(p==="r-demo"){/* already loaded */}
+  };});
+  </script>
+</body>
+</html>
